@@ -1062,11 +1062,24 @@ class Codex(BaseInstalledAgent):
         # codex 0.118.0 only honors openai_base_url from config.toml, not the env var.
         config_toml_block = ""
         if openai_base_url:
-            config_toml_block = (
-                '\ncat >>"$CODEX_HOME/config.toml" <<TOML\n'
-                'openai_base_url = "${OPENAI_BASE_URL}"\n'
-                "TOML"
-            )
+            codex_wire_api = (self._get_env("CODEX_WIRE_API") or "responses").lower()
+            if codex_wire_api == "chat":
+                config_toml_block = (
+                    '\ncat >>"$CODEX_HOME/config.toml" <<TOML\n'
+                    'model_provider = "sglang"\n'
+                    '[model_providers.sglang]\n'
+                    'name = "sglang"\n'
+                    'base_url = "${OPENAI_BASE_URL}"\n'
+                    'wire_api = "chat"\n'
+                    'env_key = "OPENAI_API_KEY"\n'
+                    "TOML"
+                )
+            else:
+                config_toml_block = (
+                    '\ncat >>"$CODEX_HOME/config.toml" <<TOML\n'
+                    'openai_base_url = "${OPENAI_BASE_URL}"\n'
+                    "TOML"
+                )
 
         setup_command += config_toml_block
 
